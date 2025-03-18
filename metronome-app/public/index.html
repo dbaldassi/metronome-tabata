@@ -30,6 +30,8 @@
                 <input type="number" id="restTime" value="10" min="1"><br/>
                 <label for="phaseBpm">Vitesse (BPM) :</label>
                 <input type="number" id="phaseBpm" value="120" min="40" max="208"><br/>
+                <label for="phaseRepetitions">Nombre de répétitions :</label>
+                <input type="number" id="phaseRepetitions" value="1" min="1"><br/>
                 <button id="addPhase">Ajouter une phase</button>
             </div>
             <div class="tabata-phases">
@@ -37,6 +39,10 @@
                 <ul id="phaseList"></ul>
             </div>
             <button id="startTabata">Démarrer Tabata</button>
+            <div class="current-phase">
+                <h3>Phase actuelle :</h3>
+                <p id="currentPhaseName">Aucune phase en cours</p>
+            </div>
         </div>
     </div>
     <script src="scripts/app.js"></script>

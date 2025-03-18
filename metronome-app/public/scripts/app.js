@@ -59,10 +59,11 @@ const metronome = {
 const tabata = {
     phases: [],
     currentPhaseIndex: 0,
+    currentPhaseRepetition: 0,
     timer: null,
 
-    addPhase: function(name, exerciseTime, restTime, bpm) {
-        this.phases.push({ name, exerciseTime, restTime, bpm });
+    addPhase: function(name, exerciseTime, restTime, bpm, repetitions) {
+        this.phases.push({ name, exerciseTime, restTime, bpm, repetitions });
         this.updatePhaseList();
     },
 
@@ -71,7 +72,7 @@ const tabata = {
         phaseList.innerHTML = '';
         this.phases.forEach((phase, index) => {
             const li = document.createElement('li');
-            li.textContent = `${phase.name} : Exercice ${phase.exerciseTime}s, Repos ${phase.restTime}s, BPM ${phase.bpm}`;
+            li.textContent = `${phase.name} : Exercice ${phase.exerciseTime}s, Repos ${phase.restTime}s, BPM ${phase.bpm}, Répétitions ${phase.repetitions}`;
             phaseList.appendChild(li);
         });
     },
@@ -81,19 +82,33 @@ const tabata = {
             alert('Ajoutez au moins une phase avant de démarrer.');
             return;
         }
+
         this.currentPhaseIndex = 0;
+        this.currentPhaseRepetition = 0;
         this.runPhase();
     },
 
     runPhase: function() {
-        if (this.currentPhaseIndex >= this.phases.length) {
-            alert('Tabata terminé !');
-            metronome.stop();
+        const currentPhase = this.phases[this.currentPhaseIndex];
+        const { name, exerciseTime, restTime, bpm, repetitions } = currentPhase;
+
+        if (this.currentPhaseRepetition >= repetitions) {
+            // Passer à la phase suivante
+            this.currentPhaseIndex++;
+            this.currentPhaseRepetition = 0;
+
+            if (this.currentPhaseIndex >= this.phases.length) {
+                alert('Tabata terminé !');
+                metronome.stop();
+                document.getElementById('currentPhaseName').textContent = 'Aucune phase en cours';
+                return;
+            }
+            this.runPhase();
             return;
         }
 
-        const currentPhase = this.phases[this.currentPhaseIndex];
-        const { name, exerciseTime, restTime, bpm } = currentPhase;
+        // Met à jour l'affichage du nom de la phase et de la répétition
+        document.getElementById('currentPhaseName').textContent = `Phase : ${name} (Répétition ${this.currentPhaseRepetition + 1} / ${repetitions})`;
 
         // Phase d'exercice
         metronome.setTempo(bpm);
@@ -103,9 +118,10 @@ const tabata = {
             metronome.stop();
 
             // Phase de repos
+            document.getElementById('currentPhaseName').textContent = `Repos (${name})`;
             console.log(`Repos ${restTime}s`);
             this.timer = setTimeout(() => {
-                this.currentPhaseIndex++;
+                this.currentPhaseRepetition++;
                 this.runPhase();
             }, restTime * 1000);
         }, exerciseTime * 1000);
@@ -115,6 +131,8 @@ const tabata = {
         clearTimeout(this.timer);
         metronome.stop();
         this.currentPhaseIndex = 0;
+        this.currentPhaseRepetition = 0;
+        document.getElementById('currentPhaseName').textContent = 'Aucune phase en cours';
     }
 };
 
@@ -124,9 +142,10 @@ document.getElementById('addPhase').addEventListener('click', () => {
     const exerciseTime = parseInt(document.getElementById('exerciseTime').value);
     const restTime = parseInt(document.getElementById('restTime').value);
     const bpm = parseInt(document.getElementById('phaseBpm').value);
+    const repetitions = parseInt(document.getElementById('phaseRepetitions').value);
 
-    if (!isNaN(exerciseTime) && !isNaN(restTime) && !isNaN(bpm)) {
-        tabata.addPhase(name, exerciseTime, restTime, bpm);
+    if (!isNaN(exerciseTime) && !isNaN(restTime) && !isNaN(bpm) && !isNaN(repetitions)) {
+        tabata.addPhase(name, exerciseTime, restTime, bpm, repetitions);
     }
 });
 
