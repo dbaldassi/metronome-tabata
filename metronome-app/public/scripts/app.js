@@ -61,6 +61,7 @@ const tabata = {
     currentPhaseIndex: 0,
     currentPhaseRepetition: 0,
     timer: null,
+    countdownInterval: null,
 
     addPhase: function(name, exerciseTime, restTime, bpm, repetitions) {
         this.phases.push({ name, exerciseTime, restTime, bpm, repetitions });
@@ -107,10 +108,8 @@ const tabata = {
             return;
         }
 
-        // Met à jour l'affichage du nom de la phase et de la répétition
-        document.getElementById('currentPhaseName').textContent = `Phase : ${name} (Répétition ${this.currentPhaseRepetition + 1} / ${repetitions})`;
-
         // Phase d'exercice
+        this.startCountdown(exerciseTime, `Phase : ${name} (Répétition ${this.currentPhaseRepetition + 1} / ${repetitions})`);
         metronome.setTempo(bpm);
         metronome.start();
         console.log(`${name} : - Exercice ${exerciseTime}s à ${bpm} BPM`);
@@ -118,7 +117,7 @@ const tabata = {
             metronome.stop();
 
             // Phase de repos
-            document.getElementById('currentPhaseName').textContent = `Repos (${name})`;
+            this.startCountdown(restTime, `Repos (${name})`);
             console.log(`Repos ${restTime}s`);
             this.timer = setTimeout(() => {
                 this.currentPhaseRepetition++;
@@ -127,8 +126,30 @@ const tabata = {
         }, exerciseTime * 1000);
     },
 
+    startCountdown: function(duration, phaseText) {
+        clearInterval(this.countdownInterval); // Clear any existing countdown
+        let timeRemaining = duration;
+        const phaseNameElement = document.getElementById('currentPhaseName');
+
+        // Update the phase name and time remaining
+        const updateDisplay = () => {
+            phaseNameElement.textContent = `${phaseText} - Temps restant : ${timeRemaining}s`;
+        };
+
+        updateDisplay(); // Initial display
+        this.countdownInterval = setInterval(() => {
+            timeRemaining--;
+            updateDisplay();
+
+            if (timeRemaining <= 0) {
+                clearInterval(this.countdownInterval);
+            }
+        }, 1000);
+    },
+
     stop: function() {
         clearTimeout(this.timer);
+        clearInterval(this.countdownInterval);
         metronome.stop();
         this.currentPhaseIndex = 0;
         this.currentPhaseRepetition = 0;
