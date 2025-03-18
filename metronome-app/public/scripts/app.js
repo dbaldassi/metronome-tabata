@@ -55,9 +55,87 @@ const metronome = {
     }
 };
 
-// Event listeners for UI controls
+// Tabata Timer Logic
+const tabata = {
+    phases: [],
+    currentPhaseIndex: 0,
+    timer: null,
+
+    addPhase: function(name, exerciseTime, restTime, bpm) {
+        this.phases.push({ name, exerciseTime, restTime, bpm });
+        this.updatePhaseList();
+    },
+
+    updatePhaseList: function() {
+        const phaseList = document.getElementById('phaseList');
+        phaseList.innerHTML = '';
+        this.phases.forEach((phase, index) => {
+            const li = document.createElement('li');
+            li.textContent = `${phase.name} : Exercice ${phase.exerciseTime}s, Repos ${phase.restTime}s, BPM ${phase.bpm}`;
+            phaseList.appendChild(li);
+        });
+    },
+
+    start: function() {
+        if (this.phases.length === 0) {
+            alert('Ajoutez au moins une phase avant de démarrer.');
+            return;
+        }
+        this.currentPhaseIndex = 0;
+        this.runPhase();
+    },
+
+    runPhase: function() {
+        if (this.currentPhaseIndex >= this.phases.length) {
+            alert('Tabata terminé !');
+            metronome.stop();
+            return;
+        }
+
+        const currentPhase = this.phases[this.currentPhaseIndex];
+        const { name, exerciseTime, restTime, bpm } = currentPhase;
+
+        // Phase d'exercice
+        metronome.setTempo(bpm);
+        metronome.start();
+        console.log(`${name} : - Exercice ${exerciseTime}s à ${bpm} BPM`);
+        this.timer = setTimeout(() => {
+            metronome.stop();
+
+            // Phase de repos
+            console.log(`Repos ${restTime}s`);
+            this.timer = setTimeout(() => {
+                this.currentPhaseIndex++;
+                this.runPhase();
+            }, restTime * 1000);
+        }, exerciseTime * 1000);
+    },
+
+    stop: function() {
+        clearTimeout(this.timer);
+        metronome.stop();
+        this.currentPhaseIndex = 0;
+    }
+};
+
+// Event listeners for Tabata controls
+document.getElementById('addPhase').addEventListener('click', () => {
+    const name = document.getElementById('phaseName').value || `Phase ${tabata.phases.length + 1}`;
+    const exerciseTime = parseInt(document.getElementById('exerciseTime').value);
+    const restTime = parseInt(document.getElementById('restTime').value);
+    const bpm = parseInt(document.getElementById('phaseBpm').value);
+
+    if (!isNaN(exerciseTime) && !isNaN(restTime) && !isNaN(bpm)) {
+        tabata.addPhase(name, exerciseTime, restTime, bpm);
+    }
+});
+
+document.getElementById('startTabata').addEventListener('click', () => tabata.start());
 document.getElementById('start').addEventListener('click', () => metronome.start());
-document.getElementById('stop').addEventListener('click', () => metronome.stop());
+document.getElementById('stop').addEventListener('click', () => {
+    metronome.stop();
+    tabata.stop();
+});
 document.getElementById('bpm').addEventListener('change', (event) => {
     const newTempo = parseInt(event.target.value);
     if (!isNaN(newTempo)) {
