@@ -4,6 +4,7 @@ const metronome = {
     isPlaying: false,
     beatCount: 0, // Keeps track of the current beat in the measure
     beatsPerMeasure: 4, // Number of beats per measure
+    volume: 0.5, // Default volume (50%)
 
     start: function() {
         if (!this.isPlaying) {
@@ -26,6 +27,7 @@ const metronome = {
     playBeat: function() {
         const soundFile = this.beatCount === 0 ? '/sounds/first.wav' : '/sounds/normal.wav';
         const audio = new Audio(soundFile);
+        audio.volume = this.volume; // Set the volume of the audio
         audio.play();
 
         this.updateUI();
@@ -46,6 +48,10 @@ const metronome = {
             this.stop();
             this.start();
         }
+    },
+
+    setVolume: function(newVolume) {
+        this.volume = newVolume;
     }
 };
 
@@ -57,4 +63,8 @@ document.getElementById('bpm').addEventListener('change', (event) => {
     if (!isNaN(newTempo)) {
         metronome.setTempo(newTempo);
     }
+});
+document.getElementById('volume').addEventListener('input', (event) => {
+    const newVolume = parseFloat(event.target.value);
+    metronome.setVolume(newVolume);
 });
