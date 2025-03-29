@@ -78,6 +78,42 @@ const tabata = {
         });
     },
 
+    exportConfig: function() {
+        const config = {
+            phases: this.phases
+        };
+
+        const jsonString = JSON.stringify(config, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'tabata_config.json';
+        link.click();
+        URL.revokeObjectURL(link.href);
+    },
+
+    importConfig: function(file) {
+        const reader = new FileReader();
+
+        reader.onload = (event) => {
+            try {
+                const config = JSON.parse(event.target.result);
+
+                if (config.phases && Array.isArray(config.phases)) {
+                    this.phases = config.phases;
+                    this.updatePhaseList();
+                    alert('Configuration chargée avec succès !');
+                } else {
+                    alert('Le fichier JSON ne contient pas de configuration valide.');
+                }
+            } catch (error) {
+                alert('Erreur lors du chargement du fichier : ' + error.message);
+            }
+        };
+
+        reader.readAsText(file);
+    },
+
     start: function() {
         if (this.phases.length === 0) {
             alert('Ajoutez au moins une phase avant de démarrer.');
@@ -185,4 +221,11 @@ document.getElementById('bpm').addEventListener('change', (event) => {
 document.getElementById('volume').addEventListener('input', (event) => {
     const newVolume = parseFloat(event.target.value);
     metronome.setVolume(newVolume);
+});
+document.getElementById('exportConfig').addEventListener('click', () => tabata.exportConfig());
+document.getElementById('importConfig').addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        tabata.importConfig(file);
+    }
 });
